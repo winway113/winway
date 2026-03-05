@@ -7,86 +7,94 @@ html
     <title>WinWay Casino</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: Arial; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
-        .balance { font-size: 24px; color: #ffcc00; margin: 20px 0; }
-        .slot-machine { display: flex; justify-content: center; gap: 10px; margin: 30px 0; }
-        .slot { width: 80px; height: 100px; background: #333; border: 4px solid #555; border-radius: 10px; font-size: 50px; display: flex; align-items: center; justify-content: center; }
-        button { padding: 15px 40px; font-size: 20px; background: #28a745; color: white; border: none; border-radius: 50px; cursor: pointer; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Занимает всю высоту экрана */
+        }
+        h1 {
+            color: #ffcc00;
+            margin-bottom: 10px;
+            font-size: 36px;
+        }
+        .welcome-message {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 колонки */
+            gap: 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+        .game-item {
+            background-color: #333;
+            border: 2px solid #555;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            font-size: 20px;
+            font-weight: bold;
+            color: #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1 / 1; /* Делает ячейки квадратными */
+        }
+        .game-item:hover {
+            background-color: #444;
+            transform: translateY(-5px);
+        }
+        .game-item.main {
+            grid-column: span 2; /* Занимает две колонки */
+            background-color: #28a745;
+            color: white;
+        }
+        .game-item.main:hover {
+            background-color: #1e7e34;
+        }
+        .game-item span {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
+
     <h1>🎰 WinWay Casino</h1>
-    <div class="balance">Баланс: <span id="balance">Загрузка...</span> $</div>
-    <div class="slot-machine">
-        <div id="slot1" class="slot">❓</div>
-        <div id="slot2" class="slot">❓</div>
-        <div id="slot3" class="slot">❓</div>
+    <p class="welcome-message">Приветствуем тебя в нашем виртуальном казино!</p>
+
+    <div class="games-grid">
+        <div class="game-item main" onclick="openGame('slots')"><span>🎰</span> Слоты</div>
+        <div class="game-item" onclick="openGame('roulette')"><span>🎡</span> Рулетка</div>
+        <div class="game-item" onclick="openGame('cards')"><span>🃏</span> Карты</div>
+        <div class="game-item" onclick="openGame('dice')"><span>🎲</span> Кости</div>
+        <div class="game-item" onclick="openGame('lottery')"><span>🎟️</span> Лотерея</div>
     </div>
-    <button onclick="spin()">КРУТИТЬ (50$)</button>
-    <div id="result" style="margin-top: 20px;"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
-        const user = tg.initDataUnsafe?.user;
-        const user_id = user ? user.id : 2098622490;
-        
-        // Твоя ссылка от Localtunnel
-        const SERVER_URL = "https://vast-queens-rest.loca.lt";
+        tg.expand(); // Развернуть мини-приложение на весь экран
 
-        let balance = 0;
-
-        async function loadBalance() {
-            try {
-                const response = await fetch(`${SERVER_URL}/get_balance?user_id=${user_id}`);
-                const data = await response.json();
-                balance = data.balance;
-                document.getElementById('balance').innerText = balance;
-            } catch (e) {
-                document.getElementById('balance').innerText = "Ошибка сервера";
-            }
-        }
-
-        async function spin() {
-            if (balance < 50) return alert("Недостаточно средств!");
-            balance -= 50;
-            document.getElementById('balance').innerText = balance;
+        function openGame(gameName) {
+            // Здесь будет логика открытия конкретной игры
+            // Пока просто выводим сообщение
+            alert(`Открываем игру: ${gameName}`);
             
-            await fetch(`${SERVER_URL}/save_balance`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({user_id: user_id, diff: -50})
-            });
-
-            const symbols = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
-            const s1 = symbols[Math.floor(Math.random()*5)], s2 = symbols[Math.floor(Math.random()*5)], s3 = symbols[Math.floor(Math.random()*5)];
-            
-            setTimeout(async () => {
-                document.getElementById('slot1').innerText = s1;
-                document.getElementById('slot2').innerText = s2;
-                document.getElementById('slot3').innerText = s3;
-
-                if (s1 === s2 && s2 === s3) {
-                    let win = (s1 === '7️⃣') ? 2000 : 500;
-                    balance += win;
-                    await fetch(`${SERVER_URL}/save_balance`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({user_id: user_id, diff: win})
-                    });
-                }
-                document.getElementById('balance').innerText = balance;
-            }, 500);
+            // В будущем здесь будет переход на другую страницу или показ другого контента
+            // Например: window.location.href = `/games/${gameName}.html`;
         }
-
-        loadBalance();
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
