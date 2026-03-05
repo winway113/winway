@@ -73,50 +73,58 @@ html
     <button onclick="spin()">КРУТИТЬ (50$)</button>
     <div class="result" id="result"></div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Развернуть на весь экран
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-        let balance = 1000;
-        const symbols = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
+    // Получаем данные о пользователе из Telegram
+    const user = tg.initDataUnsafe?.user;
+    const username = user ? user.first_name : "Игрок";
+    
+    // Пока что храним баланс в памяти телефона (LocalStorage)
+    // Позже мы свяжем это с твоей базой данных
+    let balance = parseInt(localStorage.getItem('casino_balance')) || 1000;
 
-        function spin() {
-            if (balance < 50) {
-                document.getElementById('result').innerText = "Недостаточно средств!";
-                return;
-            }
+    document.getElementById('balance').innerText = balance;
+    document.querySelector('h1').innerText = `🎰 WinWay: ${username}`;
 
-            balance -= 50;
-            updateDisplay();
-            document.getElementById('result').innerText = "Крутим...";
+    const symbols = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
 
+    function spin() {
+        if (balance < 50) {
+            document.getElementById('result').innerText = "Недостаточно средств!";
+            return;
+        }
+
+        balance -= 50;
+        saveBalance();
+        document.getElementById('result').innerText = "Крутим...";
+
+        setTimeout(() => {
             const s1 = symbols[Math.floor(Math.random() * symbols.length)];
             const s2 = symbols[Math.floor(Math.random() * symbols.length)];
             const s3 = symbols[Math.floor(Math.random() * symbols.length)];
 
-            // Небольшая задержка "анимация"
-            setTimeout(() => {
-                document.getElementById('slot1').innerText = s1;
-                document.getElementById('slot2').innerText = s2;
-                document.getElementById('slot3').innerText = s3;
+            document.getElementById('slot1').innerText = s1;
+            document.getElementById('slot2').innerText = s2;
+            document.getElementById('slot3').innerText = s3;
 
-                if (s1 === s2 && s2 === s3) {
-                    let win = 500;
-                    if (s1 === '7️⃣') win = 2000;
-                    balance += win;
-                    document.getElementById('result').innerText = `ВЫИГРЫШ: ${win}$! 🎉`;
-                    document.getElementById('result').style.color = "#ffcc00";
-                } else {
-                    document.getElementById('result').innerText = "Попробуй еще раз!";
-                    document.getElementById('result').style.color = "white";
-                }
-                updateDisplay();
-            }, 500);
-        }
+            if (s1 === s2 && s2 === s3) {
+                let win = 500;
+                if (s1 === '7️⃣') win = 2000;
+                balance += win;
+                document.getElementById('result').innerText = `ВЫИГРЫШ: ${win}$! 🎉`;
+                document.getElementById('result').style.color = "#ffcc00";
+            } else {
+                document.getElementById('result').innerText = "Попробуй еще раз!";
+                document.getElementById('result').style.color = "white";
+            }
+            saveBalance();
+        }, 500);
+    }
 
-        function updateDisplay() {
-            document.getElementById('balance').innerText = balance;
-        }
-    </script>
-</body>
-</html>
+    function saveBalance() {
+        document.getElementById('balance').innerText = balance;
+        localStorage.setItem('casino_balance', balance); // Сохраняем баланс в браузере
+    }
+</script>
